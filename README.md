@@ -17,13 +17,17 @@ In order to follow along with this guide you will need the following:
 
 ## Create Azure storage account, blob storage, File share and Azure Key Vault
 
-So within the folder scripts you will find a script ***create-az-storage-account.sh*** - run the script to create the Azure storage account and blob storage. The script creates the following resources:
+So within the scripts folder you will find the script ***create-az-storage-account.sh*** - run the script to create the Azure storage account and blob storage. The script creates the following resources:
 
 - Resource group
 - Storage account
 - Blob container
 - File share
 - Key Vault
+
+```
+./scripts/create-az-storage-account.sh
+```
 
 You should see the following output once the script completes
 
