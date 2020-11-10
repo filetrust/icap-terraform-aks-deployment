@@ -188,37 +188,36 @@ Next we will deploy the charts using Helm, please follow commands below:
 #### Adaptation & RabbitMQService
 
 ```bash
-helm install ./adaptation -n icap-adaptation --generate-name
+helm install ./charts/icap-infrastructure/adaptation -n icap-adaptation --generate-name
 
-helm install ./rabbitmq -n icap-adaptation --generate-name
+helm install ./charts/icap-infrastructure/rabbitmq -n icap-adaptation --generate-name
 ```
 
 The adaptation service does tend to restart 5/6 times before it hits *Running* status.
 
-You will then need to run the following command to enable plugins on the rabbitmq pod.
-
-```bash
-kubectl exec -it -n icap-adaptation rabbitmq-controller-<pod name> -- /bin/bash -c "rabbitmq-plugins enable rabbitmq_management"
-```
-
 #### Management UI
 
 ```bash
-helm install ./administration/management-ui -n management-ui --generate-name
+helm install ./charts/icap-infrastructure/management-ui -n management-ui --generate-name
 ```
 
 #### Transaction Event API
 
 ```bash
-helm install ./administration/transactioneventapi -n transaction-event-api --generate-name
+helm install ./charts/icap-infrastructure/transactioneventapi -n transaction-event-api --generate-name
 ```
 
 ## Optional Items
 
+The below can also be used to enable plugins for the rabbitmq management console.
+```bash
+kubectl exec -it -n icap-adaptation rabbitmq-controller-<pod name> -- /bin/bash -c "rabbitmq-plugins enable rabbitmq_management"
+```
+
 The below command will forward a connection to the rabbitmq management console.
 
 ```bash
-kubectl port-forward -n icap-adaptation rabbitmq-controller-747n4 8080:15672
+kubectl port-forward -n icap-adaptation rabbitmq-controller-<pod name> 8080:15672
 ```
 
 Then you can access it via [http://localthost:8080/](http://localthost:8080/)
