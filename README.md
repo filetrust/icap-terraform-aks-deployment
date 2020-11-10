@@ -4,9 +4,20 @@ The steps below are what is required to stand up a working cluster running the l
 
 Before you begin, please make sure you're logged into Azure-CLI with a valid Azure subscription and permissions create and destroy resources. You will also need to clone this repo down before you start, so you have access to all the resources.
 
+## Pre-requisites 
+
+In order to follow along with this guide you will need the following:
+
+- Helm
+- Terraform
+- Kubectl
+- AZ CLI
+- OpenSSL
+- Bash (or similar) terminal
+
 ## Create Azure storage account, blob storage, File share and Azure Key Vault
 
-So within the folder (insert folder name) you will find a script ***create-az-storage-account.sh*** - run the script to create the Azure storage account and blob storage. The script creates the following resources:
+So within the folder scripts you will find a script ***create-az-storage-account.sh*** - run the script to create the Azure storage account and blob storage. The script creates the following resources:
 
 - Resource group
 - Storage account
@@ -23,35 +34,42 @@ access_key: <access key>
 vault_name: gw-tfstate-vault-test
 ```
 
+Use the below environment variables for the following commands
+
+```
+export VAULT_NAME=gw-tfstate-vault-test
+export SECRET_NAME=terraform-backend-key
+```
+
 Please take note of these outputs, as they will be needed later on.
 
 Create a new secret called "terraform-backend-key" in the key vault and add the value of the storage access key created previously
 
 ```bash
-az keyvault secret set --vault-name “<vault name>” --name “terraform-backend-key” --value <the value of the access_key key>
+az keyvault secret set --vault-name $VAULT_NAME --name $SECRET_NAME --value <the value of the access_key key>
 ```
 
 Now verify you can read the value of the created secret
 
 ```bash
-az keyvault secret show --name terraform-backend-key --vault-name <vault name> --query value -o tsv
+az keyvault secret show --name $SECRET_NAME --vault-name $VAULT_NAME --query value -o tsv
 ```
 
 Next export the environment variable "ARM_ACCESS_KEY" to be able to initialise terraform
 
 ```bash
-export ARM_ACCESS_KEY=$(az keyvault secret show --name terraform-backend-key --vault-name <vault name> --query value -o tsv)
+export ARM_ACCESS_KEY=$(az keyvault secret show --name $SECRET_NAME --vault-name $VAULT_NAME --query value -o tsv)
 
 # now check to see if you can access it through variable
 
 echo $ARM_ACCESS_KEY
 ```
-*You can add the above to your .bashrc or .zshrc file if needed*
+
 ## Create Terraform Principal
 
 Next we will need to create a service principle that Terraform will use to authenticate to Azure RBAC. You will not need to log in as the service principle but you will need to add the details that get created into the Azure Vault we created earlier on. Terraform will then use these credentials to authenticate to Azure.
 
-The script can be found in (folder name) and it is called *createTerraformServicePrinciple.sh*. Running the script will create the following:
+The script can be found in the scripts folder and is called *createTerraformServicePrinciple.sh*. Running the script will create the following:
 
 - Service Principle
 - Update or create *provider.tf* file
@@ -64,18 +82,30 @@ The provider.tf file exists.  Do you want to overwrite? [Y/n]:
 
 Please enter "no" as the provider.tf file already exists within the repo.
 
-Once the script has run take note of the Username and password for the service account, as we will then need to add it to Azure Key Vault.
+Once the script has run take note of the Username and password for the service account, and add them to the following environment variables:
+
+```
+export $CLIENT_ID_SECRET=<insert secret>
+export $CLIENT_SECRET=<insert secret>
+```
 
 ## Add Service Principle to Azure Key Vault
 
 The below commands will add the service principle credentials into the Azure Key Vault. Please note that the names need to match exactly otherwise the Terraform code will not be able to retrieve them.
 
+Set the following environment variables before running the next commands:
+
+```
+export $SP_USERNAME=spusername
+export $SP_PASSWORD=sppassword
+```
+
 Use the following to add the secrets:
 
 ```bash
-az keyvault secret set --vault-name gw-tfstate-vault-test --name spusername --value <ClientID-Secret>
+az keyvault secret set --vault-name $VAULT_NAME --name $SP_USERNAME --value $CLIENT_ID_SECRET
 
-az keyvault secret set --vault-name gw-tfstate-vault-test --name sppassword --value <Client-Secret>
+az keyvault secret set --vault-name $VAULT_NAME --name $SP_PASSWORD --value $CLIENT_SECRET
 ```
 
 ## Initialise Terraform and deploy to Azure
@@ -128,7 +158,7 @@ In this stage we will be deploying the helm charts to the newly created cluster.
 - Access File Share in an Azure Storage account
 - Pull private images from DockerHub
 
-We can achieve this with the script *create-ns-secrets.sh* which will add do the following:
+We can achieve this with the script *create-ns-secrets.sh* which will be in the scripts folder and do the following:
 
 - Creates all namespaces for ICAP services
 - Add secrets for the following
@@ -140,6 +170,11 @@ Before running this script you need run the below command to create the TLS cert
 
 ```bash
 openssl req -newkey rsa:2048 -nodes -keyout tls.key -x509 -days 365 -out certificate.crt
+```
+Next run the script:
+
+```
+./create-ns-secrets.sh
 ```
 
 Once this script has completed, we can move onto deploying the services to the cluster.
@@ -166,14 +201,6 @@ You will then need to run the following command to enable plugins on the rabbitm
 kubectl exec -it -n icap-adaptation rabbitmq-controller-<pod name> -- /bin/bash -c "rabbitmq-plugins enable rabbitmq_management"
 ```
 
-Finally if you want to check that RabbitMQ is up and running you can use the following to check the console
-
-```bash
-kubectl port-forward -n icap-adaptation rabbitmq-controller-747n4 8080:15672
-```
-
-Then you can access it via [http://localthost:8080/](http://localthost:8080/)
-
 #### Management UI
 
 ```bash
@@ -185,3 +212,13 @@ helm install ./administration/management-ui -n management-ui --generate-name
 ```bash
 helm install ./administration/transactioneventapi -n transaction-event-api --generate-name
 ```
+
+## Optional Items
+
+The below command will forward a connection to the rabbitmq management console.
+
+```bash
+kubectl port-forward -n icap-adaptation rabbitmq-controller-747n4 8080:15672
+```
+
+Then you can access it via [http://localthost:8080/](http://localthost:8080/)
