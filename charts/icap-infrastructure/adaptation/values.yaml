@@ -1,0 +1,72 @@
+environment:
+serviceAccount:
+  adaptationname: adaptation-service-sa
+  janitorname: pod-janitor-sa
+volumemountpath:
+  source: "/var/azure"
+  target: "/mnt/azure"
+queue:
+  host:
+    url: "rabbitmq-service"
+    port: "\"5672\""
+    #rabbitUserName is the name of the secret where the RabbitMQ user name is stored for conntecting with the message broker.
+    #rabbitPassword is the name of the secret where the RabbitMQ password is stored for conntecting with the message broker.
+  adaptationRequest:
+    exchangename: "adaptation-exchange"
+    requestqueuename: "adaptation-request-queue"
+    replyqueuename: "amq.rabbitmq.reply-to"
+    messagename: "adaptation-request"
+adaptationservice:
+  name: adaptation-service
+  namespace: icap-adaptation
+  replicas: 1
+  amqpurl: "amqp://guest:guest@rabbitmq-service:5672/"
+  rolename: adaptation-service-role
+icapservice:
+  name: mvp-icap-service
+  applabel: adaptation
+  replicas: 1
+  port: 1344
+  tlsport: 1345
+icapserviceconfig:
+  processingtimeoutduration: 00:01:00
+podjanitor:
+  name: pod-janitor
+  namespace: icap-adaptation
+  rolename: janitor-role
+  deleteSuccessfulAfter: 1m
+  deleteFailedAfter: 3m
+eventsubmissionservice:
+  name: event-submission-service
+  replicas: 1
+  amqpurl: "amqp://guest:guest@rabbitmq-service:5672/"
+policyupdateservice:
+  name: policy-update-service
+  replicas: 1
+  port: 10000
+requestprocessingservice:
+  configmapname: request-processing-config
+imagestore:
+  requestprocessing:
+    registry: ""
+    repository: glasswallsolutions/icap-request-processing
+    tag: main-51c6a0a
+  adaptationservice:
+    registry: ""
+    repository: glasswallsolutions/icap-adaptation-service
+    tag: main-d032971
+  podjanitor:
+    registry: ""
+    repository: glasswallsolutions/pod-janitor
+    tag: main-5ce5e69
+  icapservice:
+    registry: ""
+    repository: glasswallsolutions/mvp-icap-service
+    tag: main-494924f
+  eventsubmission:
+    registry: ""
+    repository: glasswallsolutions/event-submission-service
+    tag: main-f528704
+  policyupdate:
+    repository: glasswallsolutions/policy-update-service
+    tag: main-696b28b

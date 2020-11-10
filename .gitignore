@@ -1,0 +1,8 @@
+export_tf_vars
+.terraform/
+terraform.tfvars.old
+*.tfstate
+*.tfstate.backup
+*.backup
+terafform.tfvars.old
+modules/aks/variables.tf

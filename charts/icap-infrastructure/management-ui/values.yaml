@@ -1,0 +1,12 @@
+environment:
+deployment:
+  name: icap-management-portal
+  port: 8080
+service:
+  name: icap-management-portal-service
+  port: 80
+imagestore:
+  icapmanagementui:
+    registry: ""
+    repository: glasswallsolutions/icap-management-ui
+    tag: main-72b0d7b
