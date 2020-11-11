@@ -43,6 +43,7 @@ Use the below environment variables for the following commands
 ```
 export VAULT_NAME=gw-tfstate-vault-test
 export SECRET_NAME=terraform-backend-key
+export STORAGE_ACCOUNT_NAME=tfstate
 ```
 
 Please take note of these outputs, as they will be needed later on.
@@ -68,6 +69,24 @@ export ARM_ACCESS_KEY=$(az keyvault secret show --name $SECRET_NAME --vault-name
 
 echo $ARM_ACCESS_KEY
 ```
+
+Whilst we are adding secrets to the keyvault, it is probably best to add the file share access, which will allow the pods that are created later on to access the file share.
+
+Add the following environment variables
+```bash
+export SECRET_NAME2=file-share-account
+export SECRET_NAME3=file-share-key
+export FILE_SHARE_ACCESS_KEY=(az storage account keys list --resource-group gw-icap-tfstate-test --account-name tfstate --query "[0].value" | tr -d '"')
+```
+
+Now use the following commands to add the secrets:
+
+```bash
+az keyvault secret set --vault-name $VAULT_NAME --name $SECRET_NAME2 --value $STORAGE_ACCOUNT_NAME
+
+az keyvault secret set --vault-name $VAULT_NAME --name $SECRET_NAME3 --value $FILE_SHARE_ACCESS_KEYY
+```
+
 
 ## Create Terraform Principal
 
@@ -182,6 +201,8 @@ Next run the script:
 ```
 
 Once this script has completed, we can move onto deploying the services to the cluster.
+
+***PLEASE NOTE THAT PART OF THIS SCRIPT WILL FAIL DUE TO NOT HAVING ACCESS TO DOCKERHUB SERVICE ACCOUNT - THIS WILL NOT EFFECT THE REST OF THE DEPLOYMENT - THE ACCOUNT IS ONLY NEEDED FOR PULLING PRIVATE IMAGES AND THAT ISN'T NEEDED ON THIS RUN***
 
 ### Deploy services
 
