@@ -108,8 +108,8 @@ Please enter "no" as the provider.tf file already exists within the repo.
 Once the script has run take note of the Username and password for the service account, and add them to the following environment variables:
 
 ```
-export $CLIENT_ID_SECRET=<insert secret>
-export $CLIENT_SECRET=<insert secret>
+export CLIENT_ID_SECRET=<insert secret>
+export CLIENT_SECRET=<insert secret>
 ```
 
 ## Add Service Principle to Azure Key Vault
@@ -119,8 +119,8 @@ The below commands will add the service principle credentials into the Azure Key
 Set the following environment variables before running the next commands:
 
 ```
-export $SP_USERNAME=spusername
-export $SP_PASSWORD=sppassword
+export SP_USERNAME=spusername
+export SP_PASSWORD=sppassword
 ```
 
 Use the following to add the secrets:

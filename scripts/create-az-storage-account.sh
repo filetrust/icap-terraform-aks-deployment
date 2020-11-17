@@ -28,7 +28,6 @@ az storage container create --name $CONTAINER_NAME --account-name $STORAGE_ACCOU
 az storage share create --account-name $STORAGE_ACCOUNT_NAME --account-key $ACCOUNT_KEY --name $SHARE_NAME  --quota 100 --output none
 
 # Create Key Vault
-
 az keyvault create --name $VAULT_NAME --resource-group $RESOURCE_GROUP_NAME --location $LOCATION
 
 echo "storage_account_name: $STORAGE_ACCOUNT_NAME"
